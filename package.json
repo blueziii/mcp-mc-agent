@@ -1,0 +1,61 @@
+{
+  "name": "mcp-mc-agent",
+  "version": "0.1.0",
+  "description": "Minecraft MCP server：让任意 MCP 客户端（Claude Desktop / Cursor / DSH …）拥有一个能探索、建造、聊天的 Minecraft 角色。",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "minecraft",
+    "mineflayer",
+    "agent"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blueziii/mcp-mc-agent.git"
+  },
+  "homepage": "https://github.com/blueziii/mcp-mc-agent#readme",
+  "bugs": {
+    "url": "https://github.com/blueziii/mcp-mc-agent/issues"
+  },
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "mcp-mc-agent": "./mcp/server.mjs"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./host": "./mcp/host.mjs",
+    "./server": "./mcp/server.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "mcp",
+    "src",
+    "extensions",
+    "tools",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "mineflayer": "^4.37.1",
+    "mineflayer-auto-eat": "^5.0.3",
+    "mineflayer-collectblock": "^1.6.0",
+    "mineflayer-pathfinder": "^2.4.5",
+    "mineflayer-pvp": "^1.3.2",
+    "mineflayer-tool": "^1.2.0",
+    "vec3": "^0.1.7"
+  },
+  "optionalDependencies": {
+    "prismarine-auth": "^3.1.1",
+    "sharp": "^0.35.3"
+  },
+  "scripts": {
+    "start": "node mcp/server.mjs",
+    "check": "node mcp/selfcheck-mcp.mjs"
+  }
+}

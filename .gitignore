@@ -1,0 +1,25 @@
+# 依赖（本地用 pnpm 装，不进仓库）
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+
+# 运行时产物
+logs/
+*.log.txt
+.out/
+.whale-craft/
+_diag/
+_tmp*
+
+# 本地备份（上游原版 / 补丁前后的副本）——补丁的做法写在 PATHFINDER.md 与 踩坑档案.md 里
+备份/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
+
+# MCP 版：记忆根可能落在工作区里
+.mcp-mc-agent/

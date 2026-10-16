@@ -1,0 +1,24 @@
+# 仓库里一律用 LF（这是 Node 项目，跨平台协作时 CRLF 会让 diff 整片变红）
+* text=auto eol=lf
+
+# 源码/文档显式声明为文本：光靠 text=auto，个别字节会让 git 把整个文件判成二进制，
+# 那种文件 git 就再也不做换行归一了（src/pickup.mjs 就是这么被标成 -text 的）
+*.mjs  text eol=lf
+*.js   text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.txt  text eol=lf
+
+# 二进制（别做换行转换、别按文本 diff）
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.zip binary
+*.7z binary
+
+# 实机验证的日志是证据，保留但标注为非文本处理
+实机验证/**/*.log -text
