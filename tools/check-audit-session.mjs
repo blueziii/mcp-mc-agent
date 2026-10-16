@@ -41,6 +41,8 @@ const { waitForEvents } = await import(new URL('../src/wait.mjs', import.meta.ur
 const { listenLanBroadcast } = await import(new URL('../src/lan.mjs', import.meta.url))
 const { statusPing } = await import(new URL('../src/ping.mjs', import.meta.url))
 const { redactPath } = await import(new URL('../src/core.mjs', import.meta.url))
+const { resolveStateDir } = await import(new URL('../src/config.mjs', import.meta.url))
+const { resolveStateHome } = await import(new URL('../src/format.mjs', import.meta.url))
 
 let pass = 0, fail = 0
 const ok = (cond, label, extra = '') => {
@@ -217,6 +219,37 @@ section('10. F12 mc_capabilities 暴露宿主绝对路径（含用户名）')
   } finally {
     if (prevState === undefined) delete process.env.MCP_MC_AGENT_STATE_DIR
     else process.env.MCP_MC_AGENT_STATE_DIR = prevState
+  }
+}
+
+// ── 10b. 状态目录名只能有一处出处 ────────────────────────────────────────────
+section('10b. 状态目录名两处副本走偏（真实目录 `~/mcp-mc-agent`，脱敏锚点找 `~/.mcp-mc-agent`）')
+{
+  /* 🔴 2026-10-16 审计第二次踩同一个坑：`config.mjs` 的 `STATE_DIR_NAME` 写的是**没有点**的
+   *   `'mcp-mc-agent'`（它自己上一行的注释写的却是 `~/.mcp-mc-agent`），而 `format.mjs`
+   *   的 `resolveStateHome()` 写的是**带点**的 ⇒ 状态目录真的落在 `~/mcp-mc-agent`，
+   *   脱敏锚点却找 `~/.mcp-mc-agent` ⇒ 又变成"一条路径都切不掉"。
+   *   修法：名字只有一个出处，`format.mjs` import `config.mjs` 的 `STATE_DIR_NAME`。 */
+  const FORMAT = read('src/format.mjs')
+  const CONFIG = read('src/config.mjs')
+  ok(/export const STATE_DIR_NAME = '\.mcp-mc-agent'/.test(CONFIG),
+    'config.mjs 的 STATE_DIR_NAME 带点（与 README / CHANGELOG / format 一致）')
+  ok(/import \{ STATE_DIR_NAME \} from '\.\/config\.mjs'/.test(FORMAT),
+    'format.mjs 从 config.mjs import 这个名字，不再自己写一遍')
+  ok(!/join\((fromEnv|homedir\(\)|process\.cwd\(\)), '[^']*mcp-mc-agent'\)/.test(FORMAT),
+    'format.mjs 里没有写死的目录名字面量了')
+
+  // 行为：两个函数必须指同一个地方 —— 这是"脱敏能不能生效"的前提
+  const envKeys = ['MCP_MC_AGENT_STATE_DIR', 'MCP_MC_AGENT_DIR', 'MCP_MC_AGENT_HOME']
+  const saved = envKeys.map((k) => [k, process.env[k]])
+  for (const k of envKeys) delete process.env[k]
+  try {
+    const a = resolveStateDir({ env: process.env })
+    const b = resolveStateHome()
+    ok(a === b, '行为：resolveStateDir() 与 resolveStateHome() 指同一个目录', `${a} vs ${b}`)
+    ok(/[\\/]\.mcp-mc-agent$/.test(a), '行为：默认落在 ~/.mcp-mc-agent（带点）', a)
+  } finally {
+    for (const [k, v] of saved) { if (v === undefined) delete process.env[k]; else process.env[k] = v }
   }
 }
 

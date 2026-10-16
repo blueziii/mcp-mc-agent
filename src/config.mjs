@@ -24,14 +24,20 @@ import { join, dirname } from 'node:path'
 import { homedir } from 'node:os'
 import { normalizeExpressBase } from './express.mjs'
 
-/** 插件状态目录名（MCP 版：`~/.mcp-mc-agent`） */
-export const STATE_DIR_NAME = 'mcp-mc-agent'
+/** 插件状态目录名（MCP 版：`~/.mcp-mc-agent`）
+ *
+ * 🔴 2026-10-16 审计：这里原来写的是 `'mcp-mc-agent'`（**没有点**），而**注释、README、
+ *    CHANGELOG、以及 `src/format.mjs` 的 `resolveStateHome()` 全都写的是 `.mcp-mc-agent`**
+ *    ⇒ 状态目录真的落在 `~/mcp-mc-agent`，而脱敏锚点找的是 `~/.mcp-mc-agent`
+ *    ⇒ 又变成"一条路径都切不掉"。名字只能有一个出处，`format.mjs` 现在 import 这个常量。
+ */
+export const STATE_DIR_NAME = '.mcp-mc-agent'
 
 /**
  * 解析**插件状态目录**（配置 + 账户库放这里，**不放工作区**）。
  *
  * 优先级：`MCP_MC_AGENT_STATE_DIR` → （自检/隔离）`MCP_MC_AGENT_DIR` →
- * `MCP_MC_AGENT_HOME/mcp-mc-agent` → `~/.mcp-mc-agent`。
+ * `MCP_MC_AGENT_HOME/.mcp-mc-agent` → `~/.mcp-mc-agent`。
  *
  * ⚠️ 从 DSH 版插件（旧名 `dsh-mc-agent`）搬过来的人：老状态目录在 `$DSH_HOME/dsh-mc-agent/`，
  * 名字和位置都不一样了，**不会自动接管**。想带着账户库和配置过来就手动搬一次：

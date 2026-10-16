@@ -96,6 +96,13 @@
   已补进 dependencies（另加 `prismarine-auth` 到 optionalDependencies），并去掉那条 DSH 拓扑的兜底路径。
 - **脱敏锚点找错了地方**：`redactPath()`（`mc_capabilities` 用它把绝对路径换成占位符）按 `$DSH_HOME` 切前缀，
   而真实状态目录是 `~/.mcp-mc-agent` ⇒ **一条都切不掉、主机用户名照样进工具返回**。改成按状态目录切。
+- 🔴 **状态目录名有两份副本，两份不一样**（同一个坑摔第二次）：`src/config.mjs` 的 `STATE_DIR_NAME`
+  写的是**没有点**的 `'mcp-mc-agent'`（它自己上一行的注释写的却是 `~/.mcp-mc-agent`），
+  而 `src/format.mjs` 的 `resolveStateHome()` 写的是**带点**的 ⇒ 账户库 / 配置真的落在 `~/mcp-mc-agent`，
+  脱敏锚点却找 `~/.mcp-mc-agent` ⇒ **上面那条"改成按状态目录切"的修复等于没生效**。
+  现在名字只有一个出处（`format.mjs` import `config.mjs` 的 `STATE_DIR_NAME`），并加了行为断言钉住
+  「`resolveStateDir()` 与 `resolveStateHome()` 必须指同一个目录」。
+  ⚠️ 升级注意：状态目录从 `~/mcp-mc-agent` 变成了 `~/.mcp-mc-agent`，老目录不会自动接管，要手动搬一次。
 - **日志落点与账户库分家**：日志默认写 `$DSH_HOME/mcp-mc-agent/logs/`（DSH 版遗留），
   和账户库 / 配置不在一起，跟 README 说的"日志在状态目录"也对不上。改成 `<状态目录>/logs/`。
 - **每次连服刷 5 行假报错**：vendor 树的候选路径**无条件**进候选列表，路径不存在也硬 `import()`，

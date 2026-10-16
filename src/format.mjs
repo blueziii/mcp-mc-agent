@@ -19,14 +19,19 @@
  */
 import { join, sep } from 'node:path'
 import { homedir } from 'node:os'
+import { STATE_DIR_NAME } from './config.mjs'
 
 /** 插件状态目录的家：`MCP_MC_AGENT_STATE_DIR` → `MCP_MC_AGENT_DIR`（自检隔离）→
- *  `MCP_MC_AGENT_HOME/mcp-mc-agent` → `~/.mcp-mc-agent`
+ *  `MCP_MC_AGENT_HOME/.mcp-mc-agent` → `~/.mcp-mc-agent`
  *
  * 🔴 2026-10-16 审计：这里原来读的是 `DSH_HOME`（DSH 版遗留）⇒ **MCP 版脱敏的锚点找错了地方**：
  *    真实状态目录是 `~/.mcp-mc-agent`，而它按 `~/.dsh` 去切前缀 ⇒ 一条路径都切不掉、
  *    主机用户名照样原样进工具返回。同时 `plugins.mjs` 也拿它去拼 `~/.dsh/profiles/<名字>/vendor/...`
  *    （MCP 下根本没有 profiles 这回事，纯空转）。现在按 MCP 自己的规矩来。
+ *
+ * 🔴 2026-10-16 第二次：目录名**不能在这里再写一遍** —— `config.mjs` 那边写的是没有点的
+ *    `'mcp-mc-agent'`，两边一岔开，脱敏锚点又指到了不存在的目录（同一个坑摔两次）。
+ *    名字改成从 `config.mjs` import `STATE_DIR_NAME`，只有一处出处。
  */
 export function resolveStateHome () {
   const explicit = String(process.env.MCP_MC_AGENT_STATE_DIR ?? '').trim()
@@ -34,8 +39,8 @@ export function resolveStateHome () {
   const isolated = String(process.env.MCP_MC_AGENT_DIR ?? '').trim()
   if (isolated) return isolated
   const fromEnv = String(process.env.MCP_MC_AGENT_HOME ?? '').trim()
-  if (fromEnv) return join(fromEnv, 'mcp-mc-agent')
-  try { return join(homedir(), '.mcp-mc-agent') } catch { return join(process.cwd(), '.mcp-mc-agent') }
+  if (fromEnv) return join(fromEnv, STATE_DIR_NAME)
+  try { return join(homedir(), STATE_DIR_NAME) } catch { return join(process.cwd(), STATE_DIR_NAME) }
 }
 
 /**
